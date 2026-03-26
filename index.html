@@ -133,7 +133,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:14px 0}
         <p>Внутренний конфигуратор ВИЖУ для быстрых пресейл-расчётов: оборудование, монтаж, ПНР, контент, конструкции, логистика, маржа и красивая выгрузка сметы для клиента.</p>
         <div class="pillRow">
           <span class="pill">GitHub Pages · HTML-only</span>
-          <span class="pill">Проект → зоны → автоподбор → смета</span>
+          <span class="pill">Проект → зоны → подсказки → смета</span>
           <span class="pill">Ручная корректировка позиций</span>
           <span class="pill">HTML / XLSX / PDF</span>
         </div>
@@ -199,7 +199,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:14px 0}
       <div class="field" style="margin-top:12px"><label>Комментарий к расчёту</label><textarea id="projectNotes" placeholder="Например: часть оборудования уже есть у заказчика, ночной монтаж, строгие сроки, нужен резерв, нестандартная металлоконструкция..."></textarea></div>
 
       <div class="actions">
-        <button class="btn primary" id="generateTemplateBtn">Сгенерировать смету</button>
+        <button class="btn primary" id="generateTemplateBtn">Открыть ручной расчёт</button>
         <button class="btn ghost" id="saveStateBtn">Сохранить локально</button>
         <button class="btn ghost" id="exportJsonBtn">Экспорт JSON</button>
         <button class="btn warn" id="resetBtn">Сбросить</button>
@@ -220,7 +220,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:14px 0}
           <div class="card half">
             <div class="sectionTitle"><h3>Механика просчёта</h3><button class="btn primary" id="addZoneBtn" type="button">Добавить зону</button></div>
             <div class="note">
-              Сначала заносится паспорт проекта и зоны. Для каждой зоны указываются назначение, площадь, основная задача и нужные сервисы. Генератор сам подбирает стартовый состав решений по бюджету, а затем смету можно вручную править по брендам, моделям и ценам.
+              Сначала заносится паспорт проекта и зоны. Для каждой зоны указываются назначение, площадь, основная задача и нужные сервисы. Дальше инженер собирает смету вручную, а система показывает инженерную логику, проверяет полноту решения и предлагает обязательное, рекомендуемое и опциональное сопутствующее оборудование.
             </div>
             <div class="legend" style="margin-top:12px">
               <div class="summaryBlock"><div class="title">Шаг 1</div><div class="num">Паспорт</div><div class="small">тип объекта, регион, площадь, сроки</div></div>
@@ -237,7 +237,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:14px 0}
               <div class="summaryBlock"><div class="title">Зон с монтажом</div><div class="num" id="sumInstallZones">0</div></div>
             </div>
             <div class="footerActions">
-              <button class="btn primary" id="applyRecommendedBtn">Сгенерировать по зонам</button>
+              <button class="btn primary" id="applyRecommendedBtn">Проверить полноту решения</button>
               <button class="btn ghost" id="openEstimateBtn">Открыть смету</button>
             </div>
           </div>
@@ -2706,7 +2706,7 @@ recalc();
 <!-- VIZHU UPGRADE V10 -->
 <script>
 (function(){
-  const UPGRADE_VERSION = 'v10.1';
+  const UPGRADE_VERSION = 'v10.3';
   const SERVICE_KIND_ORDER = {metal:1, install:2, pnr:3, content:4};
   const TYPE_LABELS = {
     museum:'музей / выставка',
@@ -2720,9 +2720,7 @@ recalc();
     vr:'VR / XR-зоны'
   };
   const MODE_LABELS = {
-    hybrid:'Гибридный',
-    manual:'Ручной с подсказками',
-    auto:'Гибридный'
+    manual:'Ручной с подсказками'
   };
   const DEP_LEVEL_LABELS = {
     required:'Обязательно',
@@ -2782,13 +2780,13 @@ recalc();
     document.head.appendChild(style);
   }
 
-  function normalizeCalcMode(mode){ return mode === 'manual' ? 'manual' : 'hybrid'; }
-  function projectCalcMode(){ return normalizeCalcMode(el('calcMode')?.value || 'hybrid'); }
-  function modeLabel(mode){ return MODE_LABELS[normalizeCalcMode(mode)] || MODE_LABELS.hybrid; }
+  function normalizeCalcMode(mode){ return 'manual'; }
+  function projectCalcMode(){ return 'manual'; }
+  function modeLabel(mode){ return MODE_LABELS.manual; }
   function depLevelLabel(level){ return DEP_LEVEL_LABELS[level] || level; }
   function typeLabel(id){ return TYPE_LABELS[id] || id; }
   function zoneByRef(zoneRef){ return state.zones.find(z => z.id === zoneRef) || null; }
-  function zoneCalcMode(zone){ return normalizeCalcMode(zone?.calcMode || projectCalcMode()); }
+  function zoneCalcMode(zone){ return 'manual'; }
   function contingencyPct(){ return num(el('contingencyPct')?.value) || 0; }
   function isDerivedLine(line){ return !!(line && (line.parentId || line.derived)); }
   function isStandaloneService(line){ return !isDerivedLine(line) && ['install','pnr','content','metal'].includes(inferBucketFromLine(line)); }
@@ -2825,10 +2823,8 @@ recalc();
           <div class="row2" id="calcModeRow">
             <div class="field">
               <label>Режим расчёта проекта</label>
-              <select id="calcMode">
-                <option value="hybrid">Гибридный</option>
-                <option value="manual">Ручной с подсказками</option>
-              </select>
+              <input id="calcModeView" value="Ручной с подсказками" readonly>
+              <input id="calcMode" type="hidden" value="manual">
             </div>
             <div class="field">
               <label>Непредвиденные расходы, %</label>
@@ -2836,7 +2832,7 @@ recalc();
               <div class="inputHint">Резерв добавляется отдельной строкой в финансовый итог.</div>
             </div>
           </div>
-          <div class="note small modeHelp" id="calcModeHint">Гибридный режим: система собирает ядро решения автоматически, а инженер вручную добирает бренды, опции и сценарии.</div>
+          <div class="note small modeHelp" id="calcModeHint">Ручной режим с подсказками: система не автозаполняет смету, но показывает инженерную логику по зоне, проверяет полноту решения и предлагает обязательное, рекомендуемое и опциональное сопутствующее оборудование.</div>
         `);
       }
     }
@@ -2892,17 +2888,16 @@ recalc();
   }
 
   function updateModeUi(){
-    const mode = projectCalcMode();
+    if(el('calcMode')) el('calcMode').value = 'manual';
+    if(el('calcModeView')) el('calcModeView').value = MODE_LABELS.manual;
     const hint = el('calcModeHint');
     if(hint){
-      hint.textContent = mode === 'manual'
-        ? 'Ручной режим: система не автозаполняет смету, но проверяет полноту архитектуры и предлагает обязательное/рекомендуемое сопутствующее.'
-        : 'Гибридный режим: система собирает инженерное ядро решения автоматически, а опциональные элементы и бренды инженер добирает вручную.';
+      hint.textContent = 'Ручной режим с подсказками: система не автозаполняет смету, но показывает инженерную логику по зоне, проверяет полноту решения и предлагает обязательное, рекомендуемое и опциональное сопутствующее оборудование.';
     }
     const mainBtn = el('generateTemplateBtn');
     const secondaryBtn = el('applyRecommendedBtn');
-    if(mainBtn) mainBtn.textContent = mode === 'manual' ? 'Открыть ручной расчёт' : 'Сгенерировать ядро + подсказки';
-    if(secondaryBtn) secondaryBtn.textContent = mode === 'manual' ? 'Проверить полноту решения' : 'Пересчитать ядро';
+    if(mainBtn) mainBtn.textContent = 'Открыть ручной расчёт';
+    if(secondaryBtn) secondaryBtn.textContent = 'Проверить полноту решения';
     const kpiCostCard = el('kpiCost')?.closest('.kpi');
     if(kpiCostCard){
       const label = kpiCostCard.querySelector('.label');
@@ -2915,13 +2910,18 @@ recalc();
   function ensureEnhancedState(){
     state.zones.forEach(zone => {
       if(!zone.flags) zone.flags = {...state.flags};
-      if(!Object.prototype.hasOwnProperty.call(zone,'calcMode')) zone.calcMode = '';
-      else if(zone.calcMode) zone.calcMode = normalizeCalcMode(zone.calcMode);
+      zone.calcMode = 'manual';
     });
     state.estimate.forEach(line => {
       if(!line.lineId) line.lineId = 'l' + (state.lastId++);
-      if(typeof line.locked === 'undefined') line.locked = !!(line.auto && !isDerivedLine(line));
-      if(typeof line.manualSource === 'undefined') line.manualSource = !line.auto;
+      if(line.auto && !isDerivedLine(line)){
+        line.auto = false;
+        line.manualSource = true;
+        line.locked = false;
+        delete line.autoTier;
+      }
+      if(typeof line.locked === 'undefined') line.locked = false;
+      if(typeof line.manualSource === 'undefined') line.manualSource = true;
       if(line.parentId && !line.serviceKind){
         const b = inferBucketFromLine(line);
         if(['install','pnr','content','metal'].includes(b)) line.serviceKind = b;
@@ -3704,7 +3704,7 @@ recalc();
     renderEstimate();
     switchTab('estimate');
     saveState();
-    if(projectCalcMode() !== 'auto') openLineSuggestions(line.lineId);
+    openLineSuggestions(line.lineId);
   };
 
   addCustomLine = function(){
@@ -3728,7 +3728,7 @@ recalc();
     el('customPrice').value = 0;
     renderEstimate();
     saveState();
-    if(projectCalcMode() !== 'auto') openLineSuggestions(line.lineId);
+    openLineSuggestions(line.lineId);
   };
 
   function zoneWarningsHtml(zone){
@@ -3766,9 +3766,9 @@ recalc();
             <div class="row3 zoneModeRow">
               <div class="field"><label>Ключевая задача зоны</label><select onchange="updateZoneAndRefresh('${zone.id}','primaryTask',this.value)">${TASKS.map(t => `<option value="${t.id}" ${t.id===zone.primaryTask?'selected':''}>${t.name}</option>`).join('')}</select></div>
               <div class="field"><label>Уровень решения по зоне</label><select onchange="updateZoneAndRefresh('${zone.id}','scenario',this.value)">${SCENARIOS.map(s => `<option value="${s.id}" ${s.id===zone.scenario?'selected':''}>${s.name}</option>`).join('')}</select></div>
-              <div class="field"><label>Режим расчёта зоны</label><select onchange="updateZoneAndRefresh('${zone.id}','calcMode',this.value)"><option value="">Наследовать: ${modeLabel(projectCalcMode())}</option><option value="hybrid" ${zone.calcMode==='hybrid'?'selected':''}>Гибридный</option><option value="manual" ${zone.calcMode==='manual'?'selected':''}>Ручной с подсказками</option></select></div>
+              <div class="field"><label>Режим расчёта зоны</label><input value="Ручной с подсказками" readonly></div>
             </div>
-            <div class="note small" style="margin-bottom:10px">Режим зоны: <b>${modeLabel(mode)}</b>. ${mode === 'manual' ? 'Автоподбор по зоне не будет заполнять смету, но проверки и подсказки сопутствующего останутся активными.' : 'Система соберёт инженерное ядро решения, а опции инженер доберёт вручную.'}</div>
+            <div class="note small" style="margin-bottom:10px">Режим зоны: <b>Ручной с подсказками</b>. Система не заполняет смету автоматически, но инженерная логика, проверки полноты и подсказки сопутствующего оборудования остаются активными.</div>
             <div class="mini" style="margin-bottom:8px">Сервисы зоны</div>
             <div class="chipRow">${zoneFlagHtml(zone)}</div>
             ${zoneEngineeringHtml(zone)}
@@ -3783,7 +3783,7 @@ recalc();
   updateZoneField = function(zoneId, key, value){
     const zone = state.zones.find(x => x.id === zoneId);
     if(!zone) return;
-    if(key === 'calcMode') value = value ? normalizeCalcMode(value) : '';
+    if(key === 'calcMode') value = 'manual';
     zone[key] = ['area','capacity'].includes(key) ? num(value) : value;
     clearPlanCache();
     renderZones();
@@ -3953,32 +3953,7 @@ recalc();
   }
 
   generateTemplate = function(clearBefore=true){
-    if(clearBefore){
-      const keep = new Set(state.estimate.filter(line => !line.auto || line.locked).map(line => line.lineId));
-      state.estimate = state.estimate.filter(line => !line.auto || line.locked);
-      state.estimate = state.estimate.filter(line => !line.parentId || keep.has(line.parentId));
-    }
     clearPlanCache();
-    if(projectCalcMode() === 'manual'){
-      switchTab('estimate');
-      syncAllDerivedLines();
-      renderEstimate();
-      renderZones();
-      saveState();
-      return;
-    }
-    state.zones.forEach(zone => {
-      const mode = zoneCalcMode(zone);
-      if(mode === 'manual') return;
-      const plan = buildZonePlan(zone);
-      plan.lines.forEach(raw => {
-        const tier = classifyAutoTier(raw);
-        if(mode === 'hybrid' && tier === 'optional') return;
-        const line = materializeLine({...raw, zoneName:zone.name, zoneRef:zone.id, bucket: raw.bucket || inferBucketFromLine(raw), auto:true, autoTier:tier, locked:false, manualSource:false});
-        ensureLineDefaults(line);
-        state.estimate.push(line);
-      });
-    });
     syncAllDerivedLines();
     renderEstimate();
     renderZones();
@@ -4201,7 +4176,7 @@ recalc();
   const __origStorageSnapshot = storageSnapshot;
   storageSnapshot = function(){
     const snap = __origStorageSnapshot();
-    snap.fields.calcMode = normalizeCalcMode(el('calcMode')?.value || 'hybrid');
+    snap.fields.calcMode = 'manual';
     snap.fields.contingencyPct = el('contingencyPct')?.value || '10';
     return snap;
   };
