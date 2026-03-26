@@ -4027,6 +4027,1101 @@ recalc();
 })();
 
 
+/* VIZHU V15: жёсткие зависимости, подсказки по уровням, расширенная проверка полноты */
+(function(){
+  const EXTRA_HARD_DEP_ITEMS = [
+    {id:'comm_ndi_encoder_4k', name:'NDI-энкодер 4K', brand:'Magewell / BirdDog', model:'NDI Encoder 4K', category:'Коммутация', segment:'NDI-устройства', unit:'шт.', scenario:'base', price:118000, types:['conference','corporate','museum','event','control'], note:'IP-видеокодер NDI для камер, презентационных источников и гибридных AV-сетей.', type:'equipment'},
+    {id:'comm_ndi_decoder_4k', name:'NDI-декодер 4K', brand:'Magewell / BirdDog', model:'NDI Decoder 4K', category:'Коммутация', segment:'NDI-устройства', unit:'шт.', scenario:'base', price:112000, types:['conference','corporate','museum','event','control'], note:'IP-видеодекодер NDI для дисплеев, видеостен и распределённых AV-сетей.', type:'equipment'},
+    {id:'comm_sdvoe_endpoint_4k', name:'SDVoE endpoint 4K', brand:'Aurora / ZeeVee', model:'SDVoE Endpoint 4K', category:'Коммутация', segment:'SDVoE / AV-over-IP', unit:'шт.', scenario:'premium', price:186000, types:['conference','corporate','museum','event','control'], note:'Узел SDVoE для безкомпрессионного AV-over-IP тракта в премиальных системах.', type:'equipment'},
+    {id:'comm_multiviewer_4k', name:'4K-мультивьювер', brand:'Blackmagic / Extron', model:'4K Multiviewer', category:'Коммутация', segment:'Мультивьюверы', unit:'шт.', scenario:'premium', price:158000, types:['conference','corporate','control','event'], note:'Мультивьювер для операторских, FOH и диспетчерских AV-систем.', type:'equipment'},
+    {id:'comm_kvm_extender_fiber', name:'KVM-удлинитель по оптике', brand:'Adder / Aten / Black Box', model:'KVM Fiber Extender', category:'Коммутация', segment:'KVM-удлинители', unit:'компл.', scenario:'premium', price:142000, types:['corporate','control','museum'], note:'KVM-удлинитель по оптике для удалённых операторских и защищённых AV-контуров.', type:'equipment'},
+    {id:'comm_avoip_encoder_4k_base', name:'AV-over-IP энкодер 4K', brand:'Visionary / WyreStorm', model:'AVoIP Encoder 4K', category:'Коммутация', segment:'AV-over-IP', unit:'шт.', scenario:'base', price:128000, types:['conference','corporate','museum','control','event'], note:'Энкодер распределённого AV-over-IP тракта для залов, видеостен и гибридных пространств.', type:'equipment'},
+    {id:'comm_avoip_decoder_4k_base', name:'AV-over-IP декодер 4K', brand:'Visionary / WyreStorm', model:'AVoIP Decoder 4K', category:'Коммутация', segment:'AV-over-IP', unit:'шт.', scenario:'base', price:124000, types:['conference','corporate','museum','control','event'], note:'Декодер распределённого AV-over-IP тракта для дисплеев, LED-процессоров и повторных экранов.', type:'equipment'},
+    {id:'comm_matrix_16x16_4k', name:'AV-матрица 16x16 4K', brand:'Extron / Lightware / Crestron', model:'Matrix 16x16 4K', category:'Коммутация', segment:'Матричные коммутаторы', unit:'шт.', scenario:'premium', price:520000, types:['conference','corporate','museum','event','control'], note:'Расширенная 16x16 матрица для крупных презентационных и мультирумных AV-систем.', type:'equipment'},
+    {id:'control_processor_cp4', name:'Контроллер системы управления', brand:'Crestron', model:'CP4', category:'Коммутация', segment:'Процессоры управления', unit:'шт.', scenario:'premium', price:186000, types:['conference','corporate','museum','control','public'], note:'4-Series контроллер для room-control, автоматизации сценариев и интеграции подсистем.', type:'equipment'},
+    {id:'control_processor_ipcp355', name:'Контроллер системы управления', brand:'Extron', model:'IPCP Pro 355DRQ xi', category:'Коммутация', segment:'Процессоры управления', unit:'шт.', scenario:'premium', price:328000, types:['conference','corporate','museum','control','education'], note:'IP Link Pro xi контроллер для сложных AV-систем и интеграции периферии.', type:'equipment'},
+    {id:'control_processor_qsys_core8flex', name:'Контроллер / AV-процессор', brand:'Q-SYS', model:'Core 8 Flex', category:'Коммутация', segment:'Процессоры управления', unit:'шт.', scenario:'premium', price:360000, types:['conference','corporate','museum','control'], note:'Процессор Q-SYS для интеграции управления, аудио и сценариев комнаты.', type:'equipment'},
+    {id:'control_touchpanel_7', name:'Сенсорная панель управления 7"', brand:'Extron / Crestron / Q-SYS', model:'Touch Panel 7', category:'Коммутация', segment:'Touch-панели управления', unit:'шт.', scenario:'base', price:118000, types:['conference','corporate','museum','control'], note:'Настольная или настенная touch-панель для запуска сценариев помещения.', type:'equipment'},
+    {id:'control_touchpanel_10', name:'Сенсорная панель управления 10"', brand:'Extron / Crestron / Q-SYS', model:'Touch Panel 10', category:'Коммутация', segment:'Touch-панели управления', unit:'шт.', scenario:'premium', price:168000, types:['conference','corporate','museum','control'], note:'Расширенная touch-панель управления для переговорных, залов и операторских.', type:'equipment'},
+    {id:'control_occupancy_sensor', name:'Датчик присутствия / occupancy sensor', brand:'Extron / Crestron / custom', model:'Occupancy Sensor', category:'Коммутация', segment:'Датчики сценариев', unit:'шт.', scenario:'base', price:14800, types:['conference','corporate','museum','education','public'], note:'Датчик присутствия для автостарта сценариев, света и room-control логики.', type:'infra'},
+    {id:'led_spare_module_pack', name:'Комплект запасных LED-модулей', brand:'custom / OEM', model:'LED Spare Modules', category:'Доп. оборудование', segment:'Сервисный запас LED', unit:'компл.', scenario:'base', price:98000, types:['conference','event','public','retail','museum','corporate'], note:'Запасные LED-кабинеты / модули под оперативный сервис и резерв.', type:'equipment'},
+    {id:'led_spare_psu_pack', name:'Комплект запасных LED БП / PSU', brand:'custom / OEM', model:'LED Spare PSU', category:'Доп. оборудование', segment:'Сервисный запас LED', unit:'компл.', scenario:'base', price:52000, types:['conference','event','public','retail','museum','corporate'], note:'Запасные блоки питания / PSU для сервисного резерва LED-полотна.', type:'equipment'},
+    {id:'vr_tracking_system', name:'Система трекинга VR/XR', brand:'HTC / OptiTrack / SteamVR', model:'Tracking System', category:'VR / AR', segment:'Системы трекинга', unit:'компл.', scenario:'premium', price:132000, types:['vr','museum','education','event'], note:'Внешний трекинг для room-scale VR/XR и более точных сценариев взаимодействия.', type:'equipment'},
+    {id:'vr_charging_station', name:'Зарядная станция VR-гарнитур', brand:'custom / Bretford', model:'VR Charging Station', category:'VR / AR', segment:'Хранение и зарядка', unit:'шт.', scenario:'base', price:88000, types:['vr','museum','education'], note:'Станция для хранения, зарядки и учёта VR-гарнитур и контроллеров.', type:'infra'},
+    {id:'vr_hygiene_kit_pro', name:'Гигиенический комплект VR', brand:'VR Cover / custom', model:'VR Hygiene Kit', category:'VR / AR', segment:'Эксплуатация VR', unit:'компл.', scenario:'base', price:18500, types:['vr','museum','education'], note:'Набор гигиенических масок, протирок и сменных накладок для VR-станций.', type:'consumables'},
+    {id:'vr_operator_station', name:'Операторское место VR/XR', brand:'VIZHU build', model:'VR Operator Station', category:'ПК', segment:'Операторские станции', unit:'шт.', scenario:'base', price:124000, types:['vr','museum','education','event'], note:'Операторская станция для запуска сценариев, мониторинга и помощи пользователям VR/XR.', type:'equipment'}
+  ];
+
+  const LEVEL_ORDER_V15 = { required:0, recommended:1, optional:2 };
+
+  function textV15(){
+    return Array.from(arguments).filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function inferItemTypeV15(item){
+    const unit = String(item?.unit || '').toLowerCase();
+    const text = textV15(item?.category, item?.segment, item?.name, item?.model, item?.note);
+    if(item?.type) return item.type;
+    if(/лиценз|license|cms|software|runtime|analytics|proof-of-play|monitoring|show control/.test(text) || unit === 'лицензия') return 'software';
+    if(unit === 'м' || /кабель|cat6|hdmi|usb|xlr|patch|патч|hdbaset|оптическ|fiber/.test(text)) return 'cable';
+    if(/rack|стойк|pdu|ups|ибп|power|patch panel|организатор|сеть|switch|коммутатор|sequencer|surge|fan tray|occupancy|датчик|charging station|storage/.test(text)) return 'infra';
+    return 'equipment';
+  }
+
+  function mergeMissingLibraryV15(){
+    const normalized = EXTRA_HARD_DEP_ITEMS.map((item, idx) => ({ ...normalizeCatalogItem(item, 500000 + idx), type: item.type || inferItemTypeV15(item) }));
+    const merged = dedupeCatalogItems([...ITEMS, ...normalized]);
+    const finalItems = applyPriceBandScenarios(merged).map(item => ({ ...item, type: inferItemTypeV15(item) }));
+    ITEMS.splice(0, ITEMS.length, ...finalItems);
+  }
+
+  function depV15(code, title, reason, severity){
+    return { code, title, reason, severity: severity || 'error' };
+  }
+
+  function dedupeDepsV15(list){
+    const map = new Map();
+    (list || []).forEach(dep => {
+      if(dep && dep.code && !map.has(dep.code)) map.set(dep.code, dep);
+    });
+    return Array.from(map.values());
+  }
+
+  function buildItemDependenciesV15(item){
+    const text = textV15(item?.category, item?.segment, item?.name, item?.model, item?.note);
+    const deps = { required:[], recommended:[], optional:[] };
+    const push = (level, code, title, reason, severity) => deps[level].push(depV15(code, title, reason, severity));
+
+    const isLed = /led/.test(text) && !/controller|процессор|spare|запас|service kit/.test(text);
+    const isProjector = /projector|проектор/.test(text);
+    const isInteractive = /interactive|touch|meetingboard|flip pro|viewboard|activpanel|surface hub|киоск/.test(text);
+    const isDisplay = /display|диспле|panel|панел|signage/.test(text) && !isInteractive && !isProjector && !isLed;
+    const isVideobar = /videobar|video bar|rally bar|meetingbar|studio x|neat bar|meetup/.test(text);
+    const isCamera = /ptz|camera|камера/.test(text) && !isVideobar;
+    const isMicArray = /mxa|teamconnect ceiling|beamforming|ceiling array|rm-cg|table array|parlé/.test(text);
+    const isWirelessMic = /wireless|handheld|lav|headset|bodypack|радиосистем|transceiver|receiver/.test(text) && /micro|mic|микроф|ew-|slx|qlx|ulx|mxw/.test(text);
+    const isSpeaker = /speaker|акуст|line array|column|subwoofer|сабвуф|stage monitor|монитор сцен/.test(text) && !/microphone|mic|микроф/.test(text);
+    const isRack = /rack|стойк/.test(text);
+    const isAvoip = /av-over-ip|av over ip|ndi|sdvoe|kvm|multiviewer|matrix|switcher|scaler/.test(text);
+    const isControlProcessor = /control processor|процессор управл|cp4|ipcp|core 8 flex|room control core/.test(text);
+    const isTouchPanel = /touch panel|сенсорная панель управления/.test(text);
+    const isScheduler = /scheduler|бронирован/.test(text);
+    const isOccupancy = /occupancy|датчик присутствия/.test(text);
+    const isVrHeadset = /quest|vive|vision pro|hololens|varjo|magic leap|гарнитур|headset/.test(text) && /vr|xr|ar|mixed reality|spatial/.test(text);
+    const isVrPc = /vr pc|render node|operator station|операторское место|workstation|rtx/.test(text) && (/vr|xr|operator/.test(text) || item?.category === 'VR / AR');
+
+    if(isLed){
+      push('required','led_controller','LED-процессор / контроллер','Без контроллера LED-экран не является законченным решением.','error');
+      push('required','power_distribution','Силовая часть / power distribution','LED-экрану требуется отдельная силовая часть и питание.','error');
+      push('required','signal_distribution','Сигнальный тракт','LED-экрану нужен сигнальный тракт от источника до процессора.','error');
+      push('recommended','metal_structure','Металлоконструкция / rigging','Для LED-экрана обычно требуется металл, каркас или rigging.','warn');
+      push('recommended','rack','AV-стойка / rack','LED-процессор, source и питание обычно размещаются в rack.','warn');
+      push('recommended','ups','ИБП','Для управляющей и вычислительной части LED рекомендуется ИБП.','warn');
+      push('optional','backup_processor','Резервный LED-процессор','Для критичного LED-контура полезен резервный процессор.','warn');
+      push('optional','service_spare','Сервисный запас LED','Для LED полезен запас модулей и блоков питания.','warn');
+    }
+
+    if(isProjector){
+      push('required','projection_screen','Проекционный экран','Проектор без экрана чаще всего выглядит неполным решением.','error');
+      push('required','projector_mount','Крепление / лифт проектора','Для проектора требуется способ установки и юстировки.','error');
+      push('required','video_link','Видеолиния / сигнальный тракт','Проектору нужен стабильный видеотракт от источника.','error');
+      push('recommended','scaler','Скалер / seamless-коммутатор','Для проекторов часто нужен скалер и нормализация входов.','warn');
+      push('optional','confidence_monitor','Дисплей уверенности','Для сцены или лекционного зала может потребоваться confidence monitor.','warn');
+      push('optional','side_repeater','Повторные дисплеи зала','Для широких залов полезны боковые повторные экраны.','warn');
+    }
+
+    if(isInteractive){
+      push('required','display_mount','Крепление / стойка','Интерактивной панели нужен монтажный контур или стойка.','error');
+      push('required','source_player','Вычислитель / player / PC','Интерактивный контур обычно требует compute / player.','error');
+      push('required','power_connection','Подключение питания','Интерактивный узел должен быть подключён по питанию.','error');
+      push('recommended','usb_data_link','USB / data path','Для touch и BYOM полезен отдельный USB/data path.','warn');
+      push('recommended','network_link','Сетевая линия','Для remote management и контента обычно нужна сеть.','warn');
+      push('recommended','control_software','ПО / runtime интерактива','Для интерактива стоит проверить runtime / software layer.','warn');
+      push('optional','sensor_io','GPIO / интерфейс датчиков','Для сложного интерактива полезен GPIO / relay / sensor I/O.','warn');
+      push('optional','rfid_reader','RFID / внешний триггер','Для museum / retail интерактива может потребоваться RFID.','warn');
+    } else if(isDisplay){
+      push('required','display_mount','Крепление / стойка','Панели нужен монтажный контур или стойка.','error');
+      push('required','source_player','Медиаплеер / source','Signage-дисплею нужен source / player.','error');
+      push('required','power_connection','Подключение питания','Панель должна быть подключена по питанию.','error');
+      push('recommended','network_link','Сетевая линия','Для дисплея полезна сеть под мониторинг и управление.','warn');
+      push('recommended','cms_license','CMS signage','Для signage-экрана полезно управление контентом через CMS.','warn');
+      push('optional','monitoring_license','Мониторинг signage','Для signage полезен health-check / monitoring.','warn');
+      push('optional','proof_analytics','Proof-of-play / аналитика','Для signage полезны proof-of-play и аналитика.','warn');
+    }
+
+    if(isVideobar){
+      push('required','room_pc','Room PC / вычислительный модуль','Для room-system контура обычно нужен отдельный room PC.','error');
+      push('required','touch_controller','Touch controller','Для запуска встреч и сценариев ВКС нужен touch controller.','error');
+      push('required','network_link','Сетевая линия','Видеобару и room-system контуру нужна сеть.','error');
+      push('recommended','byom_hub','BYOM / guest connect','Для ручного пресейла полезно сразу проверить BYOM.','warn');
+      push('recommended','scheduler_panel','Панель бронирования','Для переговорной полезно добавить scheduler panel.','warn');
+      push('optional','control_processor','Room-control процессор','Для сложной интеграции возможен отдельный room-control процессор.','warn');
+    }
+
+    if(isCamera){
+      push('required','room_pc','Room PC / room compute','Камера ВКС обычно работает в связке с room PC / codec compute.','error');
+      push('required','camera_capture','Capture / сигнальный тракт камеры','Для PTZ-камеры нужен USB/HDMI/SDI capture path.','error');
+      push('required','microphones','Микрофонный контур','Камера без микрофонного контура не закрывает ВКС-сценарий.','error');
+      push('recommended','touch_controller','Touch controller','Для управления встречей полезен touch controller.','warn');
+      push('recommended','network_link','Сетевая линия','Для PTZ/IP-управления и мониторинга полезна сеть.','warn');
+      push('recommended','scheduler_panel','Панель бронирования','Для переговорной полезно добавить scheduler panel.','warn');
+      push('optional','tracking_camera','Speaker tracking / AI-camera','Для premium room полезно добавить tracking-камеру.','warn');
+      push('optional','control_processor','Room-control процессор','Для сценарного управления можно добавить room-control процессор.','warn');
+    }
+
+    if(isMicArray){
+      push('required','dsp_processor','DSP / аудиопроцессор','Beamforming / ceiling mic требует DSP для маршрутизации и AEC.','error');
+      push('required','poe_network','PoE / сетевая линия','Потолочным микрофонам нужен PoE / сеть.','error');
+      push('required','audio_bridge','USB / Dante bridge','Для ВКС-контра и DSP-маршрутизации нужен USB/Dante bridge.','error');
+      push('recommended','poe_switch','PoE-коммутатор','Для массива потолочных микрофонов стоит проверить PoE-switch.','warn');
+      push('optional','control_processor','Процессор управления','Для интеграции сценариев может понадобиться processor/control core.','warn');
+    }
+
+    if(isWirelessMic){
+      push('required','dsp_processor','DSP / аудиопроцессор','Беспроводным микрофонам нужен DSP / mixer core.','error');
+      push('recommended','antenna_distribution','Антенный распределитель','При многоканальной RF-системе полезен antenna distribution.','warn');
+      push('recommended','charging_dock','Зарядная станция радиосистем','Для rechargeable-передатчиков полезна charging dock.','warn');
+      push('optional','digital_mixer','Цифровой микшер','Для презентаций и сцен может потребоваться digital mixer.','warn');
+    }
+
+    if(isSpeaker){
+      push('required','dsp_processor','DSP / аудиопроцессор','Акустическая система должна иметь DSP-ядро.','error');
+      push('required','amplifier','Усиление','Пассивной install-акустике обычно нужен усилитель.','error');
+      push('recommended','rack','AV-стойка / rack','Для усиления и DSP часто нужен rack-контур.','warn');
+    }
+
+    if(isRack){
+      push('required','pdu','PDU / силовое распределение','Стойке нужен PDU / силовое распределение.','error');
+      push('recommended','ups','ИБП','Для rack-контура стоит проверить ИБП.','warn');
+      push('recommended','patch_panel','Патч-панель','Для стойки полезна patch panel.','warn');
+      push('recommended','cable_manager','Кабельный организатор','Для стойки полезен cable manager.','warn');
+      push('optional','fan_tray','Охлаждение / fan tray','Для насыщенной стойки полезно охлаждение.','warn');
+      push('optional','power_sequencer','Power sequencer','Для controlled startup полезен power sequencer.','warn');
+      push('optional','surge_protection','Защита от перенапряжений','Для стойки полезна surge protection.','warn');
+      push('optional','fiber_patch_panel','Оптическая патч-панель','Для uplink и длинных линий полезен fiber patch panel.','warn');
+      push('optional','outdoor_connectors','Наружные коннекторы','Для outdoor/stage rack полезны IP-rated connectors.','warn');
+    }
+
+    if(isAvoip){
+      push('required','network_switch','Сетевой коммутатор','AV-over-IP / NDI / SDVoE требует сетевой коммутатор.', 'error');
+      push('required','network_link','Сетевая линия','AV-over-IP / NDI / SDVoE требует сетевой тракт.', 'error');
+      push('recommended','fiber_patch_panel','Оптическая патч-панель','Для AVoIP-магистралей полезен fiber patch panel.', 'warn');
+    }
+
+    if(isControlProcessor){
+      push('recommended','touch_panel','Touch-панель управления','Для control processor обычно нужна touch-панель.', 'warn');
+      push('optional','occupancy_sensor','Датчик присутствия','Для автоматизации полезен occupancy sensor.', 'warn');
+    }
+
+    if(isTouchPanel){
+      push('recommended','control_processor','Процессор управления','Touch-панель обычно работает с control processor.', 'warn');
+    }
+
+    if(isScheduler){
+      push('recommended','network_link','Сетевая линия','Панель бронирования обычно подключается к сети.', 'warn');
+    }
+
+    if(isVrHeadset){
+      push('required','vr_pairing','Парная VR-станция / VR-PC','Гарнитуре VR/XR нужна связанная вычислительная станция.', 'error');
+      push('recommended','charging_station','Зарядка / хранение VR','Для гарнитур полезен charging/storage контур.', 'warn');
+      push('recommended','hygiene_kit','Гигиенический комплект VR','Для эксплуатации гарнитур нужен hygiene kit.', 'warn');
+      push('recommended','observer_display','Observer display','Для демонстрации VR-сценария полезен observer monitor.', 'warn');
+      push('optional','tracking_system','Система трекинга','Для room-scale XR/VR полезна tracking system.', 'warn');
+      push('optional','operator_station','Операторское место','Для сложных сценариев полезно операторское место.', 'warn');
+    }
+
+    if(isVrPc){
+      push('required','vr_pairing','VR-гарнитура','VR-PC без гарнитуры не образует VR-станцию.', 'error');
+      push('recommended','observer_display','Observer display','Для VR-PC полезен observer display.', 'warn');
+      push('recommended','operator_station','Операторское место','Для контроля сценариев полезно операторское место.', 'warn');
+      push('optional','tracking_system','Система трекинга','Для room-scale полезна tracking system.', 'warn');
+      push('optional','render_node','Render node','Для premium XR может потребоваться render node.', 'warn');
+    }
+
+    return {
+      required: dedupeDepsV15(deps.required),
+      recommended: dedupeDepsV15(deps.recommended),
+      optional: dedupeDepsV15(deps.optional)
+    };
+  }
+
+  function refreshDependencyMetadataV15(){
+    ITEMS.forEach(item => {
+      item.type = inferItemTypeV15(item);
+      item.dependencies = buildItemDependenciesV15(item);
+      delete item.__searchText;
+    });
+  }
+
+  mergeMissingLibraryV15();
+  refreshDependencyMetadataV15();
+
+  function chooseRegexItemV15(categories, pattern, scenario, zone, predicate){
+    return findByRegex({ categories, include:[pattern], scenario, zone, predicate });
+  }
+
+  function lineGroupForV15(line){
+    if(!line) return state.estimate.slice();
+    return state.estimate.filter(existing => (existing.zoneRef || '') === (line.zoneRef || ''));
+  }
+
+  function cloneDepsV15(deps){
+    return {
+      required: dedupeDepsV15((deps?.required || []).map(dep => ({...dep}))),
+      recommended: dedupeDepsV15((deps?.recommended || []).map(dep => ({...dep}))),
+      optional: dedupeDepsV15((deps?.optional || []).map(dep => ({...dep})))
+    };
+  }
+
+  function pushDepLevelV15(target, level, dep){
+    if(!dep || !dep.code) return;
+    if(!target[level].some(existing => existing.code === dep.code)) target[level].push(dep);
+  }
+
+  function buildDynamicDependenciesV15(parentLine, profile){
+    const item = lineCatalogItem(parentLine);
+    const deps = cloneDepsV15(item?.dependencies || buildItemDependenciesV15(item || {}));
+    const zone = profile.zone;
+    const wideRoom = !!(profile.geom && profile.geom.width > 5.6);
+    const cap = num(zone?.capacity);
+    const scenario = parentLine.scenario || zone?.scenario || currentScenario();
+    const push = (level, code, title, reason, severity) => pushDepLevelV15(deps, level, depV15(code, title, reason, severity));
+
+    if((profile.kind === 'display' || profile.kind === 'interactiveDisplay') && zone && (zone.purpose === 'meeting' || zone.primaryTask === 'vc' || zone.purpose === 'conference')){
+      push('required','room_pc','Room PC / room compute','Для переговорной / ВКС-контра требуется room PC / compute.', 'error');
+      push('required','touch_controller','Touch controller','Для переговорной нужен touch controller.', 'error');
+      push('recommended','scheduler_panel','Панель бронирования','Для переговорной рекомендуется scheduler panel.', 'warn');
+      push('recommended','byom_hub','BYOM / guest connect','Для переговорной рекомендуется BYOM / guest connect.', 'warn');
+      if(wideRoom || cap > 14 || num(zone.area) > 55) push('recommended','second_display','Второй экран','Для широкой переговорной рекомендуется второй экран.', 'warn');
+      if(scenario === 'premium' || cap > 20 || num(zone.area) > 60) push('optional','tracking_camera','Speaker tracking camera','Для крупной переговорной полезна tracking camera.', 'warn');
+      push('recommended','control_processor','Room-control процессор','Для интеграции сценариев полезен room-control процессор.', 'warn');
+    }
+
+    if(profile.kind === 'projector' && zone){
+      if((profile.geom && profile.geom.width > 8) || cap > 90) push('recommended','side_repeater','Повторные дисплеи зала','Для широкого зала рекомендуются side repeaters.', 'warn');
+      if(zone.purpose === 'stage' || cap > 60) push('recommended','confidence_monitor','Дисплей уверенности','Для сцены / лекционного зала полезен confidence monitor.', 'warn');
+      if((projectContext().ceilingHeight || 0) > 4.2 || zone.purpose === 'stage') push('recommended','projector_mount','Подвес / лифт проектора','Для высокой установки полезен проекторный лифт / подвес.', 'warn');
+    }
+
+    if((profile.kind === 'speaker' || profile.kind === 'wireless' || profile.kind === 'micArray') && zone){
+      const stageLike = zone.purpose === 'stage' || zone.purpose === 'outdoor' || zone.primaryTask === 'wow';
+      if(stageLike){
+        push('recommended','line_array','Линейный массив','Для stage/event схемы полезен линейный массив.', 'warn');
+        push('recommended','subwoofer','Сабвуферы','Для stage/event схемы полезны сабвуферы.', 'warn');
+        push('recommended','stage_monitor','Сценические мониторы','Для stage/event схемы полезны сценические мониторы.', 'warn');
+        push('recommended','digital_mixer','Цифровой микшер','Для stage/event схемы полезен цифровой микшер.', 'warn');
+        push('recommended','stage_box','Stage box','Для stage/event схемы полезен stage box.', 'warn');
+      }
+      if((cap >= 80 || zone.purpose === 'conference' || zone.purpose === 'classroom') && !stageLike) push('optional','assistive_listening','Assistive listening','Для большой аудитории полезна система для слабослышащих.', 'warn');
+      if(profile.kind === 'micArray') push('recommended','poe_switch','PoE-коммутатор','Для beamforming-микрофонов полезен отдельный PoE-switch.', 'warn');
+    }
+
+    if((profile.kind === 'display' || profile.kind === 'interactiveDisplay' || profile.kind === 'kiosk') && zone && ['entrance','hall','retail','museum'].includes(zone.purpose)){
+      if(zone.flags.content || zone.primaryTask === 'content' || zone.primaryTask === 'interactive' || zone.primaryTask === 'wow'){
+        push('recommended','cms_license','CMS signage','Для signage-контура полезна CMS.', 'warn');
+        push('optional','monitoring_license','Мониторинг signage','Для signage-контура полезен monitoring.', 'warn');
+        push('optional','proof_analytics','Proof-of-play / аналитика','Для signage-контура полезны proof-of-play / analytics.', 'warn');
+      }
+    }
+
+    if(profile.kind === 'interactiveDisplay' && zone && (zone.purpose === 'museum' || zone.purpose === 'retail' || zone.primaryTask === 'interactive' || scenario === 'premium')){
+      push('optional','sensor_io','GPIO / датчики','Для интерактива полезен GPIO / sensor interface.', 'warn');
+      push('optional','rfid_reader','RFID / триггер','Для интерактива полезен RFID / внешний триггер.', 'warn');
+    }
+
+    if((profile.kind === 'led' || profile.kind === 'ledAio') && zone){
+      if(zone.purpose === 'outdoor' || zone.purpose === 'stage'){
+        push('recommended','outdoor_connectors','Наружные коннекторы','Для сценического / наружного LED полезны outdoor connectors.', 'warn');
+        push('recommended','metal_structure','Rigging / металлоконструкция','Для сценического / наружного LED полезен rigging / металл.', 'warn');
+      }
+      if((scenario === 'premium' && profile.qty > 8) || zone.primaryTask === 'wow' || zone.purpose === 'control'){
+        push('optional','backup_processor','Резервный LED-процессор','Для критичного LED-контура полезен backup processor.', 'warn');
+        push('optional','service_spare','Сервисный запас LED','Для критичного LED-контура полезен service spare.', 'warn');
+      }
+    }
+
+    if((profile.kind === 'vrHeadset' || profile.kind === 'vrPc') && zone){
+      push('recommended','charging_station','Хранение / зарядка VR','Для VR/XR-зоны полезны storage/charging.', 'warn');
+      push('recommended','hygiene_kit','Гигиенический комплект VR','Для VR/XR-зоны нужен hygiene kit.', 'warn');
+      push('recommended','observer_display','Observer display','Для VR/XR-зоны полезен observer display.', 'warn');
+      if(scenario === 'premium' || zone.primaryTask === 'wow'){
+        push('optional','tracking_system','Система трекинга VR/XR','Для premium XR-сценария полезен tracking.', 'warn');
+        push('optional','render_node','Render node','Для premium XR-сценария полезен render node.', 'warn');
+        push('optional','operator_station','Операторское место VR/XR','Для premium XR-сценария полезно операторское место.', 'warn');
+      }
+    }
+
+    if(profile.kind === 'rack' || profile.kind === 'rackInfra'){
+      push('recommended','ups','ИБП','Для rack-контура полезен ИБП.', 'warn');
+      push('recommended','patch_panel','Патч-панель','Для rack-контура полезна patch panel.', 'warn');
+      push('recommended','cable_manager','Кабельный организатор','Для rack-контура полезен cable manager.', 'warn');
+      push('optional','fan_tray','Охлаждение / fan tray','Для rack-контура полезен fan tray.', 'warn');
+      push('optional','power_sequencer','Power sequencer','Для rack-контура полезен power sequencer.', 'warn');
+      push('optional','surge_protection','Защита от перенапряжений','Для rack-контура полезна surge protection.', 'warn');
+      if(zone && (zone.purpose === 'control' || zone.purpose === 'stage' || zone.purpose === 'outdoor' || cap > 80)) push('optional','fiber_patch_panel','Оптическая патч-панель','Для зоны полезен fiber patch panel.', 'warn');
+      if(zone && (zone.purpose === 'stage' || zone.purpose === 'outdoor')) push('optional','outdoor_connectors','Наружные коннекторы','Для outdoor/stage rack полезны IP-rated connectors.', 'warn');
+    }
+
+    deps.required = dedupeDepsV15(deps.required);
+    deps.recommended = dedupeDepsV15(deps.recommended);
+    deps.optional = dedupeDepsV15(deps.optional);
+    return deps;
+  }
+
+  function makeManualLineV15(zone, cfg){
+    return manualLine(zone || null, { ...cfg, auto:false });
+  }
+
+  function makeCatalogSuggestionV15(zone, item, qty, bucket, reason, overrides){
+    if(!item || qty <= 0) return null;
+    return { line:{ ...catalogLine(zone || null, item, qty, bucket || 'equipment', reason || '', { ...(overrides || {}), auto:false }) }, reason: reason || '', level:'recommended' };
+  }
+
+  function makeManualSuggestionV15(zone, cfg, reason){
+    return { line: makeManualLineV15(zone, cfg), reason: reason || cfg.note || '', level:'recommended' };
+  }
+
+  function dependencyCandidateV15(dep, parentLine, profile, level){
+    const zone = profile.zone;
+    const scenario = parentLine.scenario || zone?.scenario || currentScenario();
+    const avgRun = profile.avgRun || 12;
+    let suggestion = null;
+    switch(dep.code){
+      case 'led_controller': {
+        const controller = chooseLEDController(Math.max(1, profile.qty || 1), scenario);
+        suggestion = makeCatalogSuggestionV15(zone, controller, Math.max(1, Math.ceil(Math.max(1, profile.qty || 1) / 18)), 'equipment', dep.reason);
+        break;
+      }
+      case 'power_distribution': {
+        const item = chooseRegexItemV15(['Доп. оборудование','ИБП'], /power distro|силовой дистриб|силов.*распредел|pdu/i, scenario, zone) || byId('infra_pdu');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : makeManualSuggestionV15(zone, {name:'Силовое распределение / power distribution', category:'Доп. оборудование', unit:'компл.', qty:1, price:98000, bucket:'equipment', note:dep.reason}, dep.reason);
+        break;
+      }
+      case 'signal_distribution': {
+        const item = byId('infra_hdbaset') || byId('infra_hdmi_aoc');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'consumables', dep.reason) : makeManualSuggestionV15(zone, {name:'Сигнальный тракт / HDMI / HDBaseT', category:'Сигнальные кабели', unit:'компл.', qty:1, price:28600, bucket:'consumables', note:dep.reason}, dep.reason);
+        break;
+      }
+      case 'metal_structure': {
+        const item = chooseRegexItemV15(['Крепления и конструкции','Доп. оборудование'], /металлоконструкц|rigging|каркас|frame|подвес/i, scenario, zone) || byId('infra_custom_metal') || byId('infra_rigging');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, item.unit === 'м²' ? Math.max(1, roundTo(profile.qty || 1, 0.1)) : 1, item.category === 'Крепления и конструкции' ? 'metal' : 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'backup_processor': {
+        const controller = chooseLEDController(Math.max(8, profile.qty || 1), 'premium');
+        suggestion = controller ? makeCatalogSuggestionV15(zone, controller, 1, 'equipment', dep.reason, {name:`Резервный LED-процессор — ${controller.brand} ${controller.model}`}) : null;
+        break;
+      }
+      case 'service_spare': {
+        const item = chooseRegexItemV15(['Доп. оборудование'], /spare|service kit|запасн.*led|сервисн.*led/i, scenario, zone) || byId('led_spare_module_pack') || byId('led_spare_psu_pack') || byId('led_spare_service_kit');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'projection_screen': {
+        const screen = chooseScreen(Math.max(120, profile.inches || 120), scenario);
+        suggestion = screen ? makeCatalogSuggestionV15(zone, screen, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'projector_mount': {
+        const mount = chooseRegexItemV15(['Крепления и конструкции','Доп. оборудование'], /projector mount|креплен.*проектор|projector lift|лифт.*проектор|подвес.*проектор/i, scenario, zone) || byId('proj_lift_mount');
+        suggestion = mount ? makeCatalogSuggestionV15(zone, mount, 1, mount.category === 'Крепления и конструкции' ? 'metal' : 'equipment', dep.reason) : makeManualSuggestionV15(zone, {name:'Крепление / подвес для проектора', category:'Крепления и конструкции', unit:'шт.', qty:1, price:28000, bucket:'metal', note:dep.reason}, dep.reason);
+        break;
+      }
+      case 'video_link': {
+        const item = byId('infra_hdbaset') || byId('infra_hdmi_aoc');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'consumables', dep.reason) : makeManualSuggestionV15(zone, {name:'Видеолиния HDMI / HDBaseT', category:'Сигнальные кабели', unit:'шт.', qty:1, price:19800, bucket:'consumables', note:dep.reason}, dep.reason);
+        break;
+      }
+      case 'scaler': {
+        const item = chooseRegexItemV15(['Коммутация'], /scaler|seamless|скалер/i, scenario, zone) || chooseRegexItemV15(['Коммутация'], /presentation switcher|switcher/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'confidence_monitor': {
+        const item = chooseRegexItemV15(['LCD-панели'], /confidence|дисплей уверенности/i, scenario, zone) || choosePanel(55, scenario, zone, false);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'side_repeater': {
+        const item = chooseRegexItemV15(['LCD-панели'], /side repeater|повторн.*дисплей/i, scenario, zone) || choosePanel(65, scenario, zone, false);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason, {name:`Повторный дисплей зала — ${item.brand} ${item.model}`}) : null;
+        break;
+      }
+      case 'display_mount': {
+        let item = null;
+        if(profile.kind === 'interactiveDisplay' && zone && zone.purpose === 'classroom' && (profile.inches || 0) >= 75) item = byId('infra_cart_86');
+        if(!item) item = byId('infra_wallmount_lfd') || chooseRegexItemV15(['Крепления и конструкции','Доп. оборудование'], /wall mount|cart|стойк|креплен/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, Math.max(1, profile.qty || 1), 'consumables', dep.reason) : makeManualSuggestionV15(zone, {name:'Крепление / стойка под дисплей', category:'Крепления и конструкции', unit:'шт.', qty:Math.max(1, profile.qty || 1), price:22000, bucket:'consumables', note:dep.reason}, dep.reason);
+        break;
+      }
+      case 'source_player': {
+        let item = null;
+        if(zone && (zone.purpose === 'meeting' || zone.primaryTask === 'vc' || zone.purpose === 'conference')) item = chooseRoomPc(scenario);
+        if(!item) item = profile.kind === 'interactiveDisplay' ? chooseMediaPc(scenario, false) : (chooseMediaPlayer(scenario) || chooseMediaPc(scenario, false));
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'power_connection': {
+        suggestion = makeManualSuggestionV15(zone, {name:'Силовое подключение AV-узла', category:'Кабельная инфраструктура', unit:'м', qty:ceilTo(Math.max(5, avgRun * 0.4), 5), price:120, bucket:'consumables', note:dep.reason}, dep.reason);
+        break;
+      }
+      case 'network_link': {
+        suggestion = makeManualSuggestionV15(zone, {name:'Сетевая линия Cat6A F/UTP', category:'Кабельная инфраструктура', unit:'м', qty:ceilTo(Math.max(5, avgRun), 5), price:95, bucket:'consumables', note:dep.reason}, dep.reason);
+        break;
+      }
+      case 'usb_data_link': {
+        suggestion = makeManualSuggestionV15(zone, {name:'USB 3.x active extension', category:'Сигнальные кабели', unit:'шт.', qty:1, price:12400, bucket:'consumables', note:dep.reason}, dep.reason);
+        break;
+      }
+      case 'control_software': {
+        const item = chooseInteractiveRuntime(scenario) || chooseRegexItemV15(['Медиасерверы'], /cms/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'content', dep.reason) : null;
+        break;
+      }
+      case 'room_pc': {
+        const item = chooseRoomPc(scenario);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'camera_capture': {
+        const item = chooseRegexItemV15(['Доп. оборудование','Коммутация'], /capture|usb capture|magewell|encoder|decoder|ndi|sdvoe|hdbaset|kvm/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : makeManualSuggestionV15(zone, {name:'Capture / сигнальный тракт камеры', category:'Коммутация', unit:'компл.', qty:1, price:42000, bucket:'equipment', note:dep.reason}, dep.reason);
+        break;
+      }
+      case 'microphones': {
+        const item = cap > 10 ? (chooseMicArray(scenario) || chooseWirelessSystem(1, scenario)) : chooseWirelessSystem(1, scenario);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'touch_controller': {
+        const item = chooseControlTouch(scenario) || chooseRegexItemV15(['Коммутация','Доп. оборудование','ВКС-системы'], /touch controller|tap ip|touch panel|сенсорн.*панел/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'scheduler_panel': {
+        const item = chooseRegexItemV15(['ВКС-системы','Коммутация'], /scheduler|бронирован/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'byom_hub': {
+        const item = chooseByomHub(scenario);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'control_processor': {
+        const item = chooseRegexItemV15(['Коммутация'], /control processor|процессор управл|room control core|cp4|ipcp|core 8 flex/i, scenario, zone) || byId('control_processor_cp4') || byId('room_control_core');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'tracking_camera': {
+        const item = chooseRegexItemV15(['ВКС-системы'], /tracking camera|speaker tracking|logitech sight|sight/i, scenario, zone) || byId('speaker_tracking_camera') || byId('vc_logi_sight');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'dsp_processor': {
+        const item = chooseDSP(scenario, true);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'amplifier': {
+        const item = chooseAmplifier(scenario);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, Math.max(1, Math.ceil(Math.max(1, profile.qty || 1) / 4)), 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'audio_bridge': {
+        const item = chooseRegexItemV15(['DSP и усилители'], /dante bridge|usb.*dante|audio bridge|мост/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'poe_network': {
+        suggestion = makeManualSuggestionV15(zone, {name:'PoE-сетевая линия Cat6A', category:'Кабельная инфраструктура', unit:'м', qty:ceilTo(Math.max(5, avgRun), 5), price:95, bucket:'consumables', note:dep.reason}, dep.reason);
+        break;
+      }
+      case 'poe_switch': {
+        const item = chooseRegexItemV15(['Сеть','Доп. оборудование'], /poe/i, scenario, zone) || chooseSwitch(Math.max(12, cap > 0 ? Math.ceil(cap / 10) : 12), scenario);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'digital_mixer': {
+        const item = chooseRegexItemV15(['DSP и усилители'], /digital mixer|микшер/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'stage_box': {
+        const item = chooseRegexItemV15(['DSP и усилители'], /stage box|сценическ.*бокс|стейджбокс/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'line_array': {
+        const item = chooseRegexItemV15(['Акустика'], /line array|линейн.*массив/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, Math.max(4, Math.ceil((cap || num(zone?.area) || 40) / 60) * 2), 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'subwoofer': {
+        const item = chooseRegexItemV15(['Акустика'], /subwoofer|сабвуф/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, Math.max(1, Math.ceil((cap || num(zone?.area) || 40) / 120)), 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'stage_monitor': {
+        const item = chooseRegexItemV15(['Акустика'], /stage monitor|монитор сцен|wedge/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, Math.max(2, Math.ceil((cap || num(zone?.area) || 40) / 80)), 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'assistive_listening': {
+        const item = chooseRegexItemV15(['DSP и усилители'], /assistive|hearing loop|слабослыш|индукц/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'antenna_distribution': {
+        const item = chooseRegexItemV15(['DSP и усилители'], /antenna distro|антенн.*распред/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'charging_dock': {
+        const item = chooseRegexItemV15(['DSP и усилители'], /charging dock|зарядн.*док/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'cms_license': {
+        const item = chooseRegexItemV15(['Медиасерверы'], /cms/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'content', dep.reason) : null;
+        break;
+      }
+      case 'monitoring_license': {
+        const item = chooseRegexItemV15(['Медиасерверы'], /monitoring|мониторинг/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'content', dep.reason) : null;
+        break;
+      }
+      case 'proof_analytics': {
+        const item = chooseRegexItemV15(['Медиасерверы'], /proof[- ]?of[- ]?play|analytics|аналитик/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'content', dep.reason) : null;
+        break;
+      }
+      case 'sensor_io': {
+        const item = chooseRegexItemV15(['DSP и усилители','Коммутация'], /gpio|relay|sensor interface|датчик/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'rfid_reader': {
+        const item = chooseRegexItemV15(['Доп. оборудование','Коммутация'], /rfid/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'charging_station': {
+        const item = chooseRegexItemV15(['VR / AR','Доп. оборудование'], /charging station|зарядн.*станц|storage|хранен|зарядн.*шкаф/i, scenario, zone) || byId('vr_charging_station');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'hygiene_kit': {
+        const item = chooseRegexItemV15(['VR / AR','Доп. оборудование'], /hygiene|гигиен/i, scenario, zone) || byId('vr_hygiene_kit_pro');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, Math.max(1, profile.qty || 1), 'consumables', dep.reason) : null;
+        break;
+      }
+      case 'observer_display': {
+        const item = choosePanel(55, scenario, zone, false) || chooseRegexItemV15(['LCD-панели'], /55|65/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason, {name:`Observer display — ${item.brand} ${item.model}`}) : null;
+        break;
+      }
+      case 'tracking_system': {
+        const item = chooseRegexItemV15(['VR / AR','Доп. оборудование'], /tracking system|lighthouse|camera tracking|трекинг/i, scenario, zone) || byId('vr_tracking_system');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'render_node': {
+        const item = chooseRegexItemV15(['ПК','VR / AR','Медиасерверы'], /render node|графическ.*нод|rtx studio/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'operator_station': {
+        const item = chooseRegexItemV15(['ПК','VR / AR','Доп. оборудование'], /operator station|операторское место/i, scenario, zone) || byId('vr_operator_station');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'pdu': {
+        const item = byId('infra_pdu') || chooseRegexItemV15(['Доп. оборудование'], /pdu/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'ups': {
+        const item = chooseUps('normal', scenario);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'patch_panel': {
+        const item = chooseRegexItemV15(['Сеть','Доп. оборудование'], /patch panel|патч[- ]?панел/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : makeManualSuggestionV15(zone, {name:'Патч-панель 24p Cat6A', category:'Сеть', unit:'шт.', qty:1, price:8200, bucket:'equipment', note:dep.reason}, dep.reason);
+        break;
+      }
+      case 'cable_manager': {
+        const item = chooseRegexItemV15(['Доп. оборудование'], /cable manager|организатор/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'consumables', dep.reason) : makeManualSuggestionV15(zone, {name:'Кабельный организатор 1U', category:'Доп. оборудование', unit:'шт.', qty:1, price:3200, bucket:'consumables', note:dep.reason}, dep.reason);
+        break;
+      }
+      case 'fan_tray': {
+        const item = chooseRegexItemV15(['Доп. оборудование'], /fan tray|вентиляторн.*панел/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'power_sequencer': {
+        const item = chooseRegexItemV15(['Доп. оборудование'], /power sequencer|последоват.*включ/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'surge_protection': {
+        const item = chooseRegexItemV15(['Доп. оборудование'], /surge|перенапряж/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'fiber_patch_panel': {
+        const item = chooseRegexItemV15(['Сеть','Доп. оборудование'], /fiber patch|оптическ.*патч|оптическ.*панел/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'outdoor_connectors': {
+        const item = chooseRegexItemV15(['Доп. оборудование'], /outdoor connector|ip67|наружн.*коннектор/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, Math.max(2, Math.ceil((profile.qty || 1) / 4)), 'consumables', dep.reason) : null;
+        break;
+      }
+      case 'network_switch': {
+        const item = chooseSwitch(Math.max(12, cap > 0 ? Math.ceil(cap / 10) : 12), scenario) || chooseRegexItemV15(['Сеть','Доп. оборудование'], /switch|коммутатор/i, scenario, zone);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'touch_panel': {
+        const item = chooseRegexItemV15(['Коммутация'], /touch panel|сенсорная панель управления/i, scenario, zone) || byId('control_touchpanel_7') || byId('control_touchpanel_10');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'occupancy_sensor': {
+        const item = chooseRegexItemV15(['Коммутация','Доп. оборудование'], /occupancy|датчик присутствия/i, scenario, zone) || byId('control_occupancy_sensor');
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason) : null;
+        break;
+      }
+      case 'second_display': {
+        const item = choosePanel(Math.max(65, profile.inches || 75), scenario, zone, false);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, 1, 'equipment', dep.reason, {name:`Второй экран — ${item.brand} ${item.model}`}) : null;
+        break;
+      }
+      case 'vr_pairing': {
+        const item = profile.kind === 'vrHeadset' ? chooseVRPc(scenario) : chooseVRHeadset(scenario);
+        suggestion = item ? makeCatalogSuggestionV15(zone, item, Math.max(1, profile.qty || 1), 'equipment', dep.reason) : null;
+        break;
+      }
+      default:
+        break;
+    }
+    if(suggestion) suggestion.level = level;
+    return suggestion ? [suggestion] : [];
+  }
+
+  function depMatchRegexV15(code){
+    const map = {
+      led_controller:/controller|контроллер|процессор|tessera|novastar|brompton|pixelhue/i,
+      power_distribution:/power distro|силовой дистриб|силов.*распредел|pdu/i,
+      signal_distribution:/signal|hdbaset|hdmi|aoc|видеолиния|сигнальн/i,
+      metal_structure:/металлоконструкц|rigging|каркас|frame|подвес|ферм|truss|ballast/i,
+      projection_screen:/проекционн.*экран|projection screen|screen/i,
+      projector_mount:/креплен.*проектор|projector mount|projector lift|лифт.*проектор|подвес.*проектор/i,
+      video_link:/hdbaset|hdmi|aoc|видеолиния|сигнальн/i,
+      scaler:/scaler|скалер|seamless/i,
+      confidence_monitor:/confidence|уверенности/i,
+      side_repeater:/side repeater|повторн.*дисплей/i,
+      display_mount:/wall mount|креплен|cart|стойк.*диспле|mobile cart/i,
+      source_player:/player|media pc|content pc|room pc|compute|ops|медиаплеер|контентн.*пк/i,
+      power_connection:/силов.*подключ|силовой кабель|электропит/i,
+      network_link:/cat6|сетевая линия|network/i,
+      usb_data_link:/usb/i,
+      control_software:/runtime|software|unity|лиценз|cms/i,
+      room_pc:/room pc|compute|roommate|compute core|meeting compute/i,
+      camera_capture:/capture|usb capture|magewell|encoder|decoder|ndi|sdvoe|kvm|hdbaset/i,
+      microphones:/microphone|mic|микроф|mxa|teamconnect|rm-cg|wireless|bodypack|gooseneck|boundary/i,
+      touch_controller:/tap ip|touch controller|tap|controller panel|touch panel/i,
+      scheduler_panel:/scheduler|бронирован/i,
+      byom_hub:/byom|clickshare|airmedia|airtame|wireless/i,
+      control_processor:/control processor|процессор управл|room control core|cp4|ipcp|core 8 flex/i,
+      tracking_camera:/tracking camera|speaker tracking|logitech sight|sight/i,
+      dsp_processor:/dsp|tesira|rm-cr|core nano|intellimix|matrix processor|процессор/i,
+      amplifier:/amplifier|усилител/i,
+      audio_bridge:/dante bridge|usb.*dante|audio bridge/i,
+      poe_network:/poe.*cat6|poe.*сетевая|poe/i,
+      poe_switch:/poe.*switch|коммутатор.*poe/i,
+      digital_mixer:/digital mixer|микшер/i,
+      stage_box:/stage box|сценическ.*бокс|стейджбокс/i,
+      line_array:/line array|линейн.*массив/i,
+      subwoofer:/subwoofer|сабвуф/i,
+      stage_monitor:/stage monitor|монитор сцен|wedge/i,
+      assistive_listening:/assistive|hearing loop|слабослыш|индукц/i,
+      antenna_distribution:/antenna distro|антенн.*распред/i,
+      charging_dock:/charging dock|зарядн.*док/i,
+      cms_license:/cms/i,
+      monitoring_license:/monitoring|мониторинг|health-check/i,
+      proof_analytics:/proof[- ]?of[- ]?play|analytics|аналитик/i,
+      sensor_io:/gpio|relay|sensor interface|датчик/i,
+      rfid_reader:/rfid/i,
+      charging_station:/charging station|зарядн.*станц|storage|хранен|зарядн.*шкаф/i,
+      hygiene_kit:/hygiene|гигиен/i,
+      observer_display:/observer|наблюдени|дисплей наблюд|confidence/i,
+      tracking_system:/tracking system|lighthouse|camera tracking|трекинг/i,
+      render_node:/render node|графическ.*нод|rtx studio/i,
+      operator_station:/operator station|операторское место/i,
+      pdu:/pdu|силов/i,
+      ups:/ups|ибп/i,
+      patch_panel:/patch panel|патч[- ]?панел/i,
+      cable_manager:/cable manager|организатор/i,
+      fan_tray:/fan tray|вентиляторн.*панел|cooling/i,
+      power_sequencer:/power sequencer|последоват.*включ/i,
+      surge_protection:/surge|перенапряж/i,
+      fiber_patch_panel:/fiber patch|оптическ.*патч|оптическ.*панел|sfp/i,
+      outdoor_connectors:/outdoor connector|ip67|наружн.*коннектор/i,
+      network_switch:/switch|коммутатор/i,
+      touch_panel:/touch panel|сенсорная панель управления/i,
+      occupancy_sensor:/occupancy|датчик присутствия/i,
+      backup_processor:/резервн.*led|backup processor/i,
+      service_spare:/spare|service kit|запасн.*led|сервисн.*led/i,
+      second_display:/второй экран|side repeater|повторн.*дисплей/i,
+      vr_pairing:/\bvr\b|\bxr\b|quest|vive|vision pro|hololens|varjo|magic leap|vr pc|operator station/i,
+      rack:/rack|стойк/i
+    };
+    return map[code] || /$a/;
+  }
+
+  function matchSuggestionToDepV15(dep, line){
+    const text = lineText(line);
+    return depMatchRegexV15(dep.code).test(text);
+  }
+
+  function guessSuggestionLevelV15(suggestion, deps){
+    for(const dep of deps.required){ if(matchSuggestionToDepV15(dep, suggestion.line)) return 'required'; }
+    for(const dep of deps.recommended){ if(matchSuggestionToDepV15(dep, suggestion.line)) return 'recommended'; }
+    for(const dep of deps.optional){ if(matchSuggestionToDepV15(dep, suggestion.line)) return 'optional'; }
+    return 'recommended';
+  }
+
+  function dedupeSuggestionsV15(list){
+    const map = new Map();
+    list.forEach(entry => {
+      if(!entry || !entry.line) return;
+      const line = entry.line;
+      const key = [line.zoneRef || '', line.sourceId || '', lower(line.name), lower(line.category), line.unit, roundTo(num(line.price),1), inferBucketFromLine(line)].join('|');
+      const current = map.get(key);
+      if(!current || LEVEL_ORDER_V15[entry.level || 'recommended'] < LEVEL_ORDER_V15[current.level || 'recommended']) map.set(key, entry);
+    });
+    return Array.from(map.values()).sort((a,b) => LEVEL_ORDER_V15[a.level || 'recommended'] - LEVEL_ORDER_V15[b.level || 'recommended']);
+  }
+
+  const __prevBuildManualAccessorySuggestionsV15 = buildManualAccessorySuggestions;
+  buildManualAccessorySuggestions = function(parentLine){
+    const basePack = __prevBuildManualAccessorySuggestionsV15(parentLine) || {
+      parentLineId: parentLine.lineId,
+      parentName: parentLine.name,
+      zoneName: parentLine.zoneName || 'Без зоны',
+      suggestions: [],
+      recommendedFlags: {install:false,pnr:false,content:false,metal:false},
+      summary: ''
+    };
+    const profile = estimateEngineeringProfile(parentLine);
+    const deps = buildDynamicDependenciesV15(parentLine, profile);
+    const enriched = [];
+
+    (basePack.suggestions || []).forEach(suggestion => {
+      const level = guessSuggestionLevelV15(suggestion, deps);
+      enriched.push({ ...suggestion, level });
+    });
+
+    ['required','recommended','optional'].forEach(level => {
+      deps[level].forEach(dep => {
+        const alreadySuggested = enriched.some(entry => matchSuggestionToDepV15(dep, entry.line));
+        if(alreadySuggested) return;
+        dependencyCandidateV15(dep, parentLine, profile, level).forEach(entry => enriched.push(entry));
+      });
+    });
+
+    basePack.suggestions = dedupeSuggestionsV15(enriched).filter(entry => !suggestionExists(entry.line));
+    basePack.dependencies = deps;
+    basePack.summary = `Система разделила сопутствующие позиции для «${parentLine.name}» на обязательные, рекомендуемые и опциональные. Сначала проверь обязательные инженерные узлы.`;
+    return basePack;
+  };
+
+  renderSuggestionPanel = function(){
+    const box = el('suggestionsCard');
+    if(!box) return;
+    const pack = state.ui.pendingSuggestions;
+    if(!pack){ box.style.display = 'none'; box.innerHTML = ''; return; }
+    const parent = state.estimate.find(line => line.lineId === pack.parentLineId);
+    if(!parent){ state.ui.pendingSuggestions = null; box.style.display = 'none'; box.innerHTML = ''; return; }
+    const canInstall = pack.recommendedFlags.install && !parent.install;
+    const canPnr = pack.recommendedFlags.pnr && !parent.pnr;
+    const canContent = pack.recommendedFlags.content && !parent.content;
+    const canMetal = pack.recommendedFlags.metal && !parent.metal;
+    const entries = (pack.suggestions || []).map((entry, idx) => ({...entry, idx}));
+    const renderGroup = (title, level) => {
+      const rows = entries.filter(entry => (entry.level || 'recommended') === level);
+      if(!rows.length) return '';
+      return `
+        <div class="suggestItem" style="margin-top:12px;padding:14px 14px 8px;">
+          <div class="sectionTitle" style="margin-bottom:8px;"><h4 style="margin:0;font-size:15px;">${title}</h4><span class="badge ${level === 'required' ? 'warn' : level === 'recommended' ? 'ok' : 'lime'}">${rows.length}</span></div>
+          <div class="suggestGrid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:0;">${rows.map(entry => `
+            <div class="suggestItem">
+              <h4>${escapeHtml(entry.line.name)}</h4>
+              <div class="suggestMeta">${escapeHtml(entry.line.category)} · ${escapeHtml(entry.line.unit)} · ${num(entry.line.qty)} × ${rub(entry.line.price)}</div>
+              <div class="small" style="color:var(--muted)">${escapeHtml(entry.reason || entry.line.note || '')}</div>
+              <div class="suggestActions">
+                <button class="btn primary" type="button" onclick="applyPendingSuggestion(${entry.idx})">Добавить</button>
+              </div>
+            </div>
+          `).join('')}</div>
+        </div>
+      `;
+    };
+    box.style.display = 'block';
+    box.innerHTML = `
+      <div class="suggestIntro">
+        <div>
+          <h3>Подсказки по зависимостям</h3>
+          <div class="small" style="color:var(--muted)">Базовая строка: <b>${escapeHtml(parent.name)}</b> · зона: ${escapeHtml(pack.zoneName)}</div>
+        </div>
+        <div class="compactActions">
+          ${entries.length ? `<button class="btn primary" type="button" onclick="applyAllPendingSuggestions()">Добавить всё (${entries.length})</button>` : ''}
+          ${entries.some(entry => entry.level === 'required') ? `<button class="btn ghost" type="button" onclick="applyPendingSuggestionLevel('required')">Добавить обязательное</button>` : ''}
+          <button class="btn ghost" type="button" onclick="choosePendingSuggestionsManually()">Выбрать вручную</button>
+          <button class="btn ghost" type="button" onclick="dismissSuggestions()">Закрыть</button>
+        </div>
+      </div>
+      <div class="modeHint" style="margin-top:12px">${escapeHtml(pack.summary || 'Система проверила инженерные зависимости и разложила сопутствующие позиции по уровням важности.')}</div>
+      <div class="compactActions" style="margin-top:12px">
+        ${canInstall ? `<button class="btn ghost" type="button" onclick="enablePendingSuggestionFlags('install')">Включить монтаж</button>` : ''}
+        ${canPnr ? `<button class="btn ghost" type="button" onclick="enablePendingSuggestionFlags('pnr')">Включить ПНР</button>` : ''}
+        ${canContent ? `<button class="btn ghost" type="button" onclick="enablePendingSuggestionFlags('content')">Включить контент / ПО</button>` : ''}
+        ${canMetal ? `<button class="btn ghost" type="button" onclick="enablePendingSuggestionFlags('metal')">Включить констр.</button>` : ''}
+      </div>
+      ${renderGroup('ОБЯЗАТЕЛЬНО','required')}
+      ${renderGroup('РЕКОМЕНДУЕТСЯ','recommended')}
+      ${renderGroup('ОПЦИОНАЛЬНО','optional')}
+      ${!entries.length ? `<div class="note small" style="margin-top:12px">Для этой позиции все ключевые зависимости уже закрыты или дополнительных товарных строк не требуется. При необходимости можно включить сервисные флаги выше.</div>` : ''}
+    `;
+  };
+
+  window.applyPendingSuggestionLevel = function(level){
+    const pack = state.ui.pendingSuggestions;
+    if(!pack) return;
+    (pack.suggestions || []).forEach(entry => {
+      if((entry.level || 'recommended') === level && !suggestionExists(entry.line)) state.estimate.push(materializeLine({ ...entry.line, auto:false }));
+    });
+    pack.suggestions = (pack.suggestions || []).filter(entry => (entry.level || 'recommended') !== level);
+    dedupeLines();
+    syncAllDerivedLines();
+    renderEstimate();
+    renderSuggestionPanel();
+    recalc();
+    renderProposal();
+    saveState();
+  };
+
+  window.choosePendingSuggestionsManually = function(){
+    switchTab('estimate');
+    renderSuggestionPanel();
+  };
+
+  window.suggestDependencies = function(itemOrLine){
+    if(!itemOrLine) return;
+    if(itemOrLine.lineId) return openSuggestionsForLine(itemOrLine);
+    if(typeof itemOrLine === 'string'){
+      const line = state.estimate.slice().reverse().find(existing => existing.lineId === itemOrLine || existing.sourceId === itemOrLine);
+      if(line) return openSuggestionsForLine(line);
+    }
+    if(itemOrLine.id){
+      const line = state.estimate.slice().reverse().find(existing => existing.sourceId === itemOrLine.id);
+      if(line) return openSuggestionsForLine(line);
+    }
+  };
+
+  function groupHasPatternV15(group, pattern, predicate){
+    return group.some(line => (!predicate || predicate(line)) && pattern.test(lineText(line)));
+  }
+
+  function dependencySatisfiedV15(dep, parentLine, group){
+    const profile = estimateEngineeringProfile(parentLine);
+    if(dep.code === 'vr_pairing'){
+      if(profile.kind === 'vrHeadset') return group.some(line => estimateEngineeringProfile(line).kind === 'vrPc' || /vr pc|render node|operator station|операторское место/i.test(lineText(line)));
+      if(profile.kind === 'vrPc') return group.some(line => estimateEngineeringProfile(line).kind === 'vrHeadset' || /quest|vive|vision pro|hololens|varjo|magic leap|гарнитур/i.test(lineText(line)));
+      return true;
+    }
+    if(dep.code === 'second_display'){
+      const count = group.filter(line => {
+        const kind = estimateEngineeringProfile(line).kind;
+        return ['display','interactiveDisplay','kiosk'].includes(kind) || /display|диспле|panel|панел/i.test(lineText(line));
+      }).length;
+      return count >= 2;
+    }
+    if(dep.code === 'rack') return groupHasPatternV15(group, /rack|стойк/i);
+    if(dep.code === 'camera_capture') return groupHasPatternV15(group, depMatchRegexV15(dep.code)) || groupHasPatternV15(group, /hdmi|hdbaset|aoc|usb/i, line => inferBucketFromLine(line) === 'consumables');
+    if(dep.code === 'power_connection') return groupHasPatternV15(group, depMatchRegexV15(dep.code)) || groupHasPatternV15(group, /силовой кабель|электропит|pdu|power/i);
+    if(dep.code === 'network_link' || dep.code === 'poe_network') return groupHasPatternV15(group, /cat6|сетевая линия|network/i);
+    if(dep.code === 'video_link' || dep.code === 'signal_distribution') return groupHasPatternV15(group, /hdbaset|hdmi|aoc|видеолиния|signal/i);
+    if(dep.code === 'source_player') return group.some(line => {
+      const kind = estimateEngineeringProfile(line).kind;
+      return ['media','vrPc'].includes(kind) || /player|media pc|content pc|room pc|compute|ops|медиаплеер|контентн.*пк/i.test(lineText(line));
+    });
+    if(dep.code === 'display_mount' || dep.code === 'projector_mount') return groupHasPatternV15(group, depMatchRegexV15(dep.code));
+    if(dep.code === 'cms_license' || dep.code === 'monitoring_license' || dep.code === 'proof_analytics') return groupHasPatternV15(group, depMatchRegexV15(dep.code));
+    if(dep.code === 'touch_controller') return groupHasPatternV15(group, /tap ip|touch controller|touch panel|controller panel|сенсорн.*панел/i);
+    if(dep.code === 'control_processor') return groupHasPatternV15(group, /control processor|процессор управл|room control core|cp4|ipcp|core 8 flex/i);
+    if(dep.code === 'room_pc') return groupHasPatternV15(group, /room pc|compute|roommate|meeting compute|compute core/i);
+    if(dep.code === 'microphones') return group.some(line => {
+      const kind = estimateEngineeringProfile(line).kind;
+      return ['wireless','micArray'].includes(kind) || /microphone|mic|микроф|mxa|teamconnect|rm-cg|gooseneck|boundary/i.test(lineText(line));
+    });
+    if(dep.code === 'dsp_processor') return group.some(line => {
+      const kind = estimateEngineeringProfile(line).kind;
+      return kind === 'dsp' || /dsp|tesira|rm-cr|core nano|intellimix|matrix processor/i.test(lineText(line));
+    });
+    if(dep.code === 'amplifier') return groupHasPatternV15(group, /amplifier|усилител/i);
+    if(dep.code === 'observer_display') return group.some(line => {
+      const kind = estimateEngineeringProfile(line).kind;
+      return ['display','interactiveDisplay'].includes(kind) || /observer|наблюдени|дисплей|panel|display/i.test(lineText(line));
+    });
+    if(dep.code === 'tracking_system') return groupHasPatternV15(group, /tracking system|lighthouse|camera tracking|трекинг/i);
+    if(dep.code === 'operator_station') return groupHasPatternV15(group, /operator station|операторское место/i);
+    return groupHasPatternV15(group, depMatchRegexV15(dep.code));
+  }
+
+  window.checkSystemCompleteness = function(){
+    const issues = [];
+    const seen = new Set();
+    const sourceLines = state.estimate.filter(line => !line.derived);
+    sourceLines.forEach(line => {
+      const profile = estimateEngineeringProfile(line);
+      const item = lineCatalogItem(line);
+      const deps = buildDynamicDependenciesV15(line, profile);
+      const group = lineGroupForV15(line);
+      const lineLabel = line.name || item?.name || 'Строка';
+      const register = (level, dep) => {
+        if(!dep) return;
+        const satisfied = dependencySatisfiedV15(dep, line, group);
+        if(satisfied) return;
+        const severity = dep.severity || (level === 'required' ? 'error' : 'warn');
+        const key = [line.zoneRef || '', profile.kind || 'generic', dep.code, severity].join('|');
+        const existing = issues.find(issue => issue.__key === key);
+        if(existing){
+          if(!existing.lineIds.includes(line.lineId)) existing.lineIds.push(line.lineId);
+          return;
+        }
+        seen.add(key);
+        issues.push({
+          __key: key,
+          zoneId: line.zoneRef || '',
+          zoneName: line.zoneName || 'Без зоны',
+          title: severity === 'error' ? `${lineLabel}: отсутствует ${dep.title}` : `${lineLabel}: стоит проверить ${dep.title}`,
+          text: dep.reason || `Для строки «${lineLabel}» не найден зависимый узел «${dep.title}».`,
+          severity,
+          lineIds:[line.lineId],
+          actionableLineId: line.lineId,
+          dependencyCode: dep.code,
+          level
+        });
+      };
+      deps.required.forEach(dep => register('required', dep));
+      deps.recommended.forEach(dep => register('recommended', dep));
+    });
+    return issues.map(issue => { const { __key, ...rest } = issue; return rest; });
+  };
+
+  function renderCompletenessV15(){
+    let box = el('completenessCard');
+    if(!box){
+      const estimatePane = el('tab-estimate');
+      const suggestions = el('suggestionsCard');
+      if(estimatePane && suggestions){
+        suggestions.insertAdjacentHTML('afterend', '<div class="card" id="completenessCard" style="display:none;grid-column:span 12;"></div>');
+        box = el('completenessCard');
+      }
+    }
+    if(!box) return;
+    const issues = window.checkSystemCompleteness();
+    if(!issues.length){ box.style.display = 'none'; box.innerHTML = ''; return; }
+    const errors = issues.filter(issue => issue.severity === 'error').length;
+    const warns = issues.filter(issue => issue.severity !== 'error').length;
+    box.style.display = 'block';
+    box.innerHTML = `
+      <div class="sectionTitle"><h3>Проверка полноты решения</h3><span class="badge warn">${issues.length}</span></div>
+      <div class="modeHint">Проверяются жёсткие и рекомендуемые инженерные зависимости по каждой базовой строке. Если связь потеряна, система подсвечивает это как ошибку или предупреждение.</div>
+      <div class="compactActions" style="margin-top:12px;">
+        <span class="badge warn">Ошибки: ${errors}</span>
+        <span class="badge ok">Предупреждения: ${warns}</span>
+      </div>
+      <div class="suggestGrid" style="margin-top:12px;grid-template-columns:repeat(2,minmax(0,1fr));">${issues.map(issue => `
+        <div class="suggestItem">
+          <div class="small" style="color:var(--muted);margin-bottom:6px;">${escapeHtml(issue.zoneName)}</div>
+          <h4>${escapeHtml(issue.title)}</h4>
+          <div class="small" style="color:var(--muted)">${escapeHtml(issue.text)}</div>
+          <div class="suggestActions">
+            <button class="btn ghost" type="button" onclick="openSuggestionsById('${issue.actionableLineId}')">Открыть подсказки</button>
+          </div>
+        </div>
+      `).join('')}</div>
+    `;
+  }
+
+  function annotateCompletenessBadgesV15(){
+    const issues = window.checkSystemCompleteness();
+    const counts = new Map();
+    issues.forEach(issue => issue.lineIds.forEach(id => counts.set(id, (counts.get(id) || 0) + 1)));
+    document.querySelectorAll('#estimateBody tr').forEach(tr => {
+      tr.querySelectorAll('.estimate-warning-badge').forEach(node => node.remove());
+      const btn = tr.querySelector('button[onclick*="removeLine("]');
+      if(!btn) return;
+      const match = (btn.getAttribute('onclick') || '').match(/removeLine\('([^']+)'\)/);
+      const lineId = match && match[1];
+      if(!lineId) return;
+      const count = counts.get(lineId) || 0;
+      if(!count) return;
+      const actionCell = tr.lastElementChild;
+      if(!actionCell) return;
+      const badge = document.createElement('div');
+      badge.className = 'badge warn estimate-warning-badge';
+      badge.style.marginBottom = '8px';
+      badge.textContent = `Потеряно связей: ${count}`;
+      actionCell.prepend(badge);
+    });
+  }
+
+  const __prevRenderEstimateV15 = renderEstimate;
+  renderEstimate = function(){
+    __prevRenderEstimateV15();
+    renderCompletenessV15();
+    annotateCompletenessBadgesV15();
+  };
+
+  const __prevProposalHtmlV15 = proposalHtml;
+  proposalHtml = function(){
+    let html = __prevProposalHtmlV15();
+    html = html.replace(/<div style="margin-top:18px;">\s*<div style="font-weight:800;margin-bottom:8px;">Проверка полноты решения<\/div>[\s\S]*?<\/div>\s*(?=<div style="margin-top:18px;font-size:12px;color:#546153;">)/, '');
+    const issues = window.checkSystemCompleteness();
+    if(!issues.length) return html;
+    const block = `
+      <div style="margin-top:18px;">
+        <div style="font-weight:800;margin-bottom:8px;">Проверка полноты решения</div>
+        <div style="font-size:12px;color:#546153;margin-bottom:8px;">Проверены жёсткие и рекомендуемые инженерные зависимости по выбранным базовым строкам.</div>
+        ${issues.map(issue => `
+          <div style="padding:10px 12px;border:1px solid #dce3d1;border-radius:12px;margin-bottom:8px;">
+            <div style="font-size:12px;color:#546153;">${escapeHtml(issue.zoneName)}</div>
+            <div style="font-weight:700;margin-top:4px;">${escapeHtml(issue.title)}</div>
+            <div style="font-size:12px;color:#283124;margin-top:4px;">${escapeHtml(issue.text)}</div>
+          </div>
+        `).join('')}
+      </div>`;
+    return html.replace('<div style="margin-top:18px;font-size:12px;color:#546153;">', `${block}<div style="margin-top:18px;font-size:12px;color:#546153;">`);
+  };
+
+  clearPlanCache();
+  renderLibrary();
+  renderEstimate();
+  renderProposal();
+  recalc();
+  saveState();
+})();
+
+
 </script>
 </body>
 </html>
